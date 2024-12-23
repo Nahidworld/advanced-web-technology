@@ -7,18 +7,14 @@ export class AuthService {
   constructor(private readonly userService: UserService) {}
 
   async validateUser(email: string, password: string) {
+    console.log('Validating user with email:', email);  // Add logging
     const user = await this.userService.findByEmail(email);
-    if (!user) {
-      throw new UnauthorizedException('User not found');
+    if (user && (await bcrypt.compare(password, user.password))) {
+      return user;
     }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid password');
-    }
-
-    return user;
+    throw new UnauthorizedException('Invalid credentials');
   }
+  
 }
 
 
