@@ -1,13 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { MENU } from './menu.entity';
+import { Menu } from './menu.entity';
+import { CreateMenuDto, UpdateMenuDto } from './menu.dto';
+import { QUEUE } from 'src/queue/queue.entity';
 
 @Injectable()
 export class MenuService {
   constructor(
-    @InjectRepository(MENU)
-    private readonly menuRepository: Repository<MENU>,
+    @InjectRepository(Menu)
+    private readonly menuRepository: Repository<Menu>,
   ) {}
 
   private menu = [];
@@ -28,6 +30,35 @@ export class MenuService {
   }
 
   // Database Operations
+
+  // Create a new menu item
+  async createMenuItem(createMenuDto: CreateMenuDto): Promise<Menu> {
+    const menuItem = this.menuRepository.create(createMenuDto);
+    return await this.menuRepository.save(menuItem);
+  }
+
+  // Get all menu items
+  async getAllMenuItems(): Promise<Menu[]> {
+    return await this.menuRepository.find();
+  }
+
+  // Get a specific menu item by ID
+  async getMenuItemById(id: number): Promise<Menu> {
+    return await this.menuRepository.findOne({ where: { id } });
+  }
+
+  // Update a menu item
+  async updateMenuItem(id: number, updateMenuDto: UpdateMenuDto): Promise<Menu> {
+    await this.menuRepository.update(id, updateMenuDto);
+    return this.getMenuItemById(id);
+  }
+
+  // Delete a menu item
+  async deleteMenuItem(id: number): Promise<void> {
+    await this.menuRepository.delete(id);
+  }
+
+  //
   async addToDatabase(data: any) {
     const savedItem = await this.menuRepository.save(data);
     return { message: 'Menu Item Added to Database', data: savedItem };

@@ -1,17 +1,21 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, UseGuards } from '@nestjs/common';
 import { MenuService } from './menu.service';
-import { CreateMenuItemDTO, UpdateMenuItemDTO } from './menu.dto';
+import { CreateMenuDto, UpdateMenuDto } from './menu.dto';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('menu')
 export class MenuController {
-  constructor(private readonly menuService: MenuService) {}
+  constructor(
+    private readonly menuService: MenuService
+  ) {}
 
   // In-memory Operations
 
-  @Post('/add')
-  addMenu(@Body() data: CreateMenuItemDTO) {
-    return this.menuService.addMenu(data);
-  }
+  // @Post('/add')
+  // addMenu(@Body() data: CreateMenuItemDTO) {
+  //   return this.menuService.addMenu(data);
+  // }
 
   @Get('/view')
   viewAll() {
@@ -25,30 +29,72 @@ export class MenuController {
 
   // Database Operations
 
-  @Post('/db/add')
-  addToDatabase(@Body() data: CreateMenuItemDTO) {
-    return this.menuService.addToDatabase(data);
+  // Get all menu items (only accessible to authenticated Chef)
+  @UseGuards(JwtAuthGuard)
+  //@UseGuards(AuthGuard)
+  @Get()
+  async getAllMenuItems() {
+    return await this.menuService.getAllMenuItems();
   }
 
-  @Get('/db/all')
-  getAllFromDatabase() {
-    return this.menuService.getAllFromDatabase();
-  }
+   // Get a specific menu item by ID (only accessible to authenticated Chef)
+   //@UseGuards(AuthGuard)
+   @UseGuards(JwtAuthGuard)
+   @Get('/:id')
+   async getMenuItemById(@Param('id') id: number) {
+     return await this.menuService.getMenuItemById(id);
+   }
+ 
+   // Create a new menu item (only accessible to authenticated Chef)
+   //@UseGuards(AuthGuard)
+   @UseGuards(JwtAuthGuard)
+   @Post()
+   async createMenuItem(@Body() createMenuDto: CreateMenuDto) {
+     return await this.menuService.createMenuItem(createMenuDto);
+   }
+ 
+   // Update an existing menu item (only accessible to authenticated Chef)
+   //@UseGuards(AuthGuard)
+   @UseGuards(JwtAuthGuard)
+   @Put(':id')
+   async updateMenuItem(@Param('id') id: number, 
+    @Body() updateMenuDto: UpdateMenuDto) {
+     return await this.menuService.updateMenuItem(id, updateMenuDto);
+   }
+ 
+   // Delete a menu item (only accessible to authenticated Chef)
+   //@UseGuards(AuthGuard)
+   @UseGuards(JwtAuthGuard)
+   @Delete(':id')
+   async deleteMenuItem(@Param('id') id: number) {
+     await this.menuService.deleteMenuItem(id);
+     return { message: `Menu item with ID ${id} deleted successfully.` };
+   }
 
-  @Get('/db/:id')
-  findById(@Param('id') id) {
-    return this.menuService.findById(id);
-  }
+  // @Post('/db/add')
+  // addToDatabase(@Body() data: CreateMenuItemDTO) {
+  //   return this.menuService.addToDatabase(data);
+  // }
 
-  @Delete('/db/:id')
-  deleteById(@Param('id') id) {
-    return this.menuService.deleteById(id);
-  }
+  // @Get('/db/all')
+  // getAllFromDatabase() {
+  //   return this.menuService.getAllFromDatabase();
+  // }
 
-  @Patch('/db/:id')
-  updateById(@Param('id') id, @Body() data: UpdateMenuItemDTO) {
-    return this.menuService.updateById(id, data);
-  }
+  // @Get('/db/:id')
+  // findById(@Param('id') id) {
+  //   return this.menuService.findById(id);
+  // }
+
+  // @Delete('/db/:id')
+  // deleteById(@Param('id') id) {
+  //   return this.menuService.deleteById(id);
+  // }
+
+  // @Patch('/db/:id')
+  // updateById(@Param('id') id, @Body() data: UpdateMenuItemDTO) {
+  //   return this.menuService.updateById(id, data);
+  // }
 }
 
 
