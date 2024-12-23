@@ -21,7 +21,7 @@ export class QueueController {
         return this.queueService.findByName(name);
     }
 
-    //Database
+    //Database operation
     //Add order to queue by post method
     @Post('/db/add')
     async addOrderToQueue(@Body() createQueueDto: CreateQueueDto) {
