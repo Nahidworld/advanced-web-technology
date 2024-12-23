@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { RecipeModule } from './recipe/recipe.module';
@@ -16,6 +16,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import session from 'express-session';
 import { PassportModule } from '@nestjs/passport';
+import { ConfigModule } from '@nestjs/config';
 @Module({
 
   imports: [
@@ -28,28 +29,38 @@ import { PassportModule } from '@nestjs/passport';
       database: 'test',
       entities: [__dirname + '/**/*.entity{.ts,.js}'], // Load all entities dynamically
       synchronize: true,
+    }),ConfigModule.forRoot({
+      isGlobal: true,  // Makes configuration available globally
     }),
     PassportModule.register({ defaultStrategy: 'jwt' }), 
-    MenuModule,RecipeModule, QueueModule, 
-    InventoryModule, OrderModule, ReportModule, 
-    FeedbackModule, AuthModule, UserModule
+    MenuModule,
+    RecipeModule,
+    QueueModule, 
+    InventoryModule, 
+    OrderModule, 
+    ReportModule, 
+    FeedbackModule, 
+    AuthModule, 
+    UserModule,
+    PassportModule.register({ session: true }),
   ],
 
   //imports: [RecipeModule, IncomeModule, MenuModule],
   controllers: [AppController, IncomeController],
-  providers: [AppService, IncomeService],
+  providers: [AppService, IncomeService,],
 })
 // export class AppModule {}
 export class AppModule {
-  configure(consumer) {
+  configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(
         session({
-          secret: 'my-secret-key',
+          secret: 'abc123', // Replace with a secure, random secret in production
           resave: false,
           saveUninitialized: false,
+          cookie: { maxAge: 3600000 }, // 1-hour cookie expiration
         }),
       )
-      .forRoutes('*');
+      .forRoutes('*'); // Apply session middleware globally
   }
 }
